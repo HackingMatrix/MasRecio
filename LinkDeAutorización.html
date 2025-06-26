@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Link de Autorización</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container,
+    #loader,
+    #finalMessage {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      text-align: center;
+      width: 100%;
+      max-width: 600px;
+      border-top: 5px solid #b71c1c;
+    }
+
+    .logo {
+      width: 100%;
+      max-width: 250px;
+      height: auto;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #000;
+    }
+
+    .pedido-item {
+      margin-bottom: 30px;
+    }
+
+    .pedido-item img {
+      width: 100%;
+      max-width: 300px;
+      height: auto;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: opacity 0.3s;
+    }
+
+    .accept {
+      background-color: #b71c1c;
+      color: white;
+    }
+
+    .reject {
+      background-color: #333;
+      color: white;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Spinner */
+    .spinner {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #b71c1c;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    #loader p {
+      font-size: 18px;
+      margin-top: 10px;
+    }
+
+    #finalMessage h2 {
+      font-size: 22px;
+      margin: 0;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 20px;
+      }
+      h1 {
+        font-size: 20px;
+      }
+      .pedido-item img {
+        max-width: 200px;
+      }
+      button {
+        font-size: 14px;
+        padding: 10px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Contenido principal -->
+  <div class="container" id="mainContent">
+    <img src="MasRecioLogo.png" alt="Logo MasRecio" class="logo">
+    <h1>Link de Autorización</h1>
+
+    <div class="pedido-item">
+      <p>50 camisetas</p>
+      <img src="camiseta.png" alt="Imagen de camiseta">
+    </div>
+
+    <div class="pedido-item">
+      <p>50 termos</p>
+      <img src="termo.png" alt="Imagen de termo">
+    </div>
+
+    <div class="buttons">
+      <button class="accept" id="btnAccept">Aceptar</button>
+      <button class="reject" id="btnReject">Rechazar</button>
+    </div>
+  </div>
+
+  <!-- Loader -->
+  <div id="loader" class="hidden">
+    <div class="spinner"></div>
+    <p>Procesando...</p>
+  </div>
+
+  <!-- Mensaje final -->
+  <div id="finalMessage" class="hidden">
+    <h2 id="messageText"></h2>
+  </div>
+
+  <!-- JavaScript -->
+<!-- ... todo tu <head> y estilos sin cambios ... -->
+
+<script>
+  function mostrarLoaderYMensaje(tipo) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('mainContent').style.display = 'none';
+    const loader = document.getElementById('loader');
+    loader.classList.remove('hidden');
+
+    // Llamada al webhook de n8n
+    const id = 'abc123'; // Reemplazar por ID dinámico si aplica
+    const url = `https://chatbotmoviro.southcentralus.cloudapp.azure.com/n8n/webhook-test/31c5abe6-1fd5-424c-87ea-6fb53daeb5ca?respuesta=${tipo}&id=${id}`;
+
+    fetch(url)
+      .then(() => {
+        setTimeout(() => {
+          loader.classList.add('hidden');
+
+          const mensaje = document.getElementById('messageText');
+          if (tipo === 'aceptado') {
+            mensaje.innerHTML = '✅ ¡Has aceptado el pedido!';
+          } else {
+            mensaje.innerHTML = `
+              ❌ ¿Tienes dudas sobre el pedido?<br><br>
+              <strong>¡Estamos para ayudarte!</strong><br>
+              Escríbenos por WhatsApp y te responderemos en minutos. 💬<br><br>
+              <a href="https://wa.me/521XXXXXXXXXX?text=Hola,%20tengo%20una%20duda%20sobre%20el%20pedido." 
+                 target="_blank" 
+                 style="display: inline-block; padding: 12px 20px; background-color: #25D366; color: white; border-radius: 5px; text-decoration: none; font-weight: bold;">
+                 Contactar por WhatsApp
+              </a>
+            `;
+          }
+
+          document.getElementById('finalMessage').classList.remove('hidden');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 2000);
+      })
+      .catch((error) => {
+        console.error('Error al contactar webhook:', error);
+        alert('Hubo un error al procesar tu solicitud. Inténtalo más tarde.');
+      });
+  }
+
+  document.getElementById('btnAccept').addEventListener('click', () => {
+    mostrarLoaderYMensaje('aceptado');
+  });
+
+  document.getElementById('btnReject').addEventListener('click', () => {
+    mostrarLoaderYMensaje('rechazado');
+  });
+</script>
+
+</body>
+</html>
